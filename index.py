@@ -1,5 +1,6 @@
 import requests
 import json
+import re
 
 import asyncio
 from pyppeteer import launch
@@ -58,7 +59,8 @@ def processSong(song, artist):
 
 		# Fetch and save lyrics
 		lyrics = fetchLyrics(details['url'])
-		output = open(f'lyrics/{artist} - {song}.txt', mode='w', encoding='utf-8')
+		filename = re.sub('[<>:"\/\\\|\?\*]', '', f'{artist} - {song}')
+		output = open(f'lyrics/{filename}.txt', mode='w', encoding='utf-8')
 		output.write(lyrics)
 		output.close()
 
