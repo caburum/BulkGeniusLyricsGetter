@@ -27,7 +27,7 @@ def fetchLyrics(url):
 		global browser
 		if not browser:
 			browser = await launch(
-				headless=False
+				headless=True
 			)
 		page = await browser.newPage()
 		await page.setRequestInterception(True)
