@@ -1,2 +1,8 @@
+# API key
 .env
+
+# Input
 songs.json
+
+# Output
+lyrics

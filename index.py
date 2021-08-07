@@ -16,11 +16,13 @@ with open('songs.json') as file:
 
 # Fetch song lyrics
 def fetchLyrics(url):
+	# Block unneeded requests for a faster load time
 	async def handleReq(request):
 		if request.resourceType in ['script', 'image', 'stylesheet', 'font', 'media']: # I blocked 'script' and it works but if it breaks try removing it
 			await request.abort()
 		else:
 			await request.continue_()
+	# Request page and scrape lyrics
 	async def main():
 		global browser
 		if not browser:
@@ -34,12 +36,11 @@ def fetchLyrics(url):
 		lyrics = await page.evaluate("Array.from(document.querySelectorAll('div[class*=\"Lyrics__Container\"]')).map(function (elem) { return elem.innerText }).join('\\n')")
 		await page.close()
 		# await browser.close()
-		print(lyrics)
 		return lyrics
 	return loop.run_until_complete(main())
 
-# Lookup Genuis song ID
-def lookupSong(song, artist):
+def processSong(song, artist):
+	# Lookup Genuis song ID
 	search = requests.get(f"https://api.genius.com/search?q={song} - {artist}", headers={
 		'Authorization': f'Bearer {GENIUS_TOKEN}',
 	}).json()
@@ -50,11 +51,16 @@ def lookupSong(song, artist):
 			details = hit['result']
 			break
 
-	if details:
-		print(f"Found song \"{details['title']}\" by \"{details['primary_artist']['name']}\" - ID {details['id']}")
-		fetchLyrics(details['url'])
-	else:
+	if not details:
 		print(f"Could not find \"{song}\" by \"{artist}\"")
+	elif details:
+		print(f"Found song \"{details['title']}\" by \"{details['primary_artist']['name']}\" - {details['url']}")
 
-for song in songs[0:2]:
-	lookupSong(song['title'], song['artist'])
+		# Fetch and save lyrics
+		lyrics = fetchLyrics(details['url'])
+		output = open(f'lyrics/{artist} - {song}.txt', mode='w', encoding='utf-8')
+		output.write(lyrics)
+		output.close()
+
+for song in songs:
+	processSong(song['title'], song['artist'])
